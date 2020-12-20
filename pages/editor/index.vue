@@ -50,7 +50,8 @@
 
 <script>
 export default {
-    name: 'EditorIndex'
+  middleware: 'authenticated',
+  name: 'EditorIndex'
 };
 </script>
 
