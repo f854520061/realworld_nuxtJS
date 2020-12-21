@@ -12,11 +12,57 @@
         <div class="col-md-9">
           <div class="feed-toggle">
             <ul class="nav nav-pills outline-active">
-              <li class="nav-item">
-                <a class="nav-link disabled" href="">Your Feed</a>
+              <li v-if="user" class="nav-item">
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'your_feed',
+                  }"
+                  :to="{
+                    name: 'home',
+                    query: {
+                      tab: 'your_feed',
+                    },
+                  }"
+                  exact
+                >
+                  Your Feed
+                </nuxt-link>
               </li>
               <li class="nav-item">
-                <a class="nav-link active" href="">Global Feed</a>
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'global_feed',
+                  }"
+                  :to="{
+                    name: 'home',
+                    query: {
+                      tab: 'global_feed',
+                    },
+                  }"
+                  exact
+                >
+                  Global Feed
+                </nuxt-link>
+              </li>
+              <li v-if="tag" class="nav-item">
+                <nuxt-link
+                  class="nav-link"
+                  :class="{
+                    active: tab === 'tag',
+                  }"
+                  :to="{
+                    name: 'home',
+                    query: {
+                      tab: 'tag',
+                      tag
+                    },
+                  }"
+                  exact
+                >
+                  #{{ tag }}
+                </nuxt-link>
               </li>
             </ul>
           </div>
@@ -90,6 +136,7 @@
                     name: 'home',
                     query: {
                       page: item,
+                      tag,
                     },
                   }"
                   >{{ item }}</nuxt-link
@@ -104,14 +151,20 @@
             <p>Popular Tags</p>
 
             <div class="tag-list">
-              <a 
-                href="" 
+              <nuxt-link
+                :to="{
+                  name: 'home',
+                  query: {
+                    tag: item,
+                    tab: 'tag'
+                  }
+                }"
                 class="tag-pill tag-default"
                 v-for="item in tags"
                 :key="item"
               >
-              {{item}}
-              </a>
+                {{ item }}
+              </nuxt-link>
             </div>
           </div>
         </div>
@@ -121,33 +174,44 @@
 </template>
 
 <script>
-import { getArticles } from "@/api/article"
-import { getTags } from "@/api/tag"
+import { getArticles } from "@/api/article";
+import { getTags } from "@/api/tag";
+import { mapState } from "vuex";
 
 export default {
   name: "HomeIndex",
   async asyncData({ query }) {
-    const page = Number.parseInt(query.page || 1)
+    const page = Number.parseInt(query.page || 1);
     const limit = 20;
-    const { data } = await getArticles({
-      limit,
-      offset: (page - 1) * limit,
-    });
 
-    const { data: tagData } = await getTags()
+    const { tag, tab = "global_feed" } = query;
+    const [articleRes, tagRes] = await Promise.all([
+      getArticles({
+        limit,
+        offset: (page - 1) * limit,
+        tag,
+      }),
+      getTags(),
+    ]);
+
+    const { articles, articlesCount } = articleRes.data;
+    const { tags } = tagRes.data;
 
     return {
-      articles: data.articles,
-      articlesCount: data.articlesCount,
+      articles,
+      articlesCount,
       limit,
       page,
-      tags: tagData.tags
-    }
+      tags,
+      tag,
+      tab,
+    };
   },
-  watchQuery: ['page'],
+  watchQuery: ["page", "tag", "tab"],
   computed: {
+    ...mapState(["user"]),
     totalPage() {
-      return Math.ceil(this.articlesCount / this.limit)
+      return Math.ceil(this.articlesCount / this.limit);
     },
   },
 };
