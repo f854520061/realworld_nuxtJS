@@ -95,11 +95,13 @@
                 >
                   {{ article.author.username }}
                 </nuxt-link>
-                <span class="date">{{ article.createdAt }}</span>
+                <span class="date">{{ article.createdAt | date('MMM DD, YYYY') }}</span>
               </div>
               <button
                 class="btn btn-outline-primary btn-sm pull-xs-right"
                 :class="{ active: article.favoritesCount > 0 }"
+                @click="onFavorite(article)"
+                :disabled="article.favoriteDisabled"
               >
                 <i class="ion-heart"></i> {{ article.favoritesCount }}
               </button>
@@ -137,6 +139,7 @@
                     query: {
                       page: item,
                       tag,
+                      tab: 'tag'
                     },
                   }"
                   >{{ item }}</nuxt-link
@@ -174,19 +177,24 @@
 </template>
 
 <script>
-import { getArticles } from "@/api/article";
+import { getArticles, getFeedArticles, addFavorite, delFavorite } from "@/api/article";
 import { getTags } from "@/api/tag";
 import { mapState } from "vuex";
 
 export default {
   name: "HomeIndex",
-  async asyncData({ query }) {
+  async asyncData({ query, store }) {
     const page = Number.parseInt(query.page || 1);
     const limit = 20;
 
     const { tag, tab = "global_feed" } = query;
+
+    const loadArticles = store.state.user && tab === 'your_feed'
+      ? getFeedArticles
+      : getArticles
+
     const [articleRes, tagRes] = await Promise.all([
-      getArticles({
+      loadArticles({
         limit,
         offset: (page - 1) * limit,
         tag,
@@ -196,6 +204,8 @@ export default {
 
     const { articles, articlesCount } = articleRes.data;
     const { tags } = tagRes.data;
+
+    articles.forEach(article => article.favoriteDisabled = false)
 
     return {
       articles,
@@ -214,6 +224,21 @@ export default {
       return Math.ceil(this.articlesCount / this.limit);
     },
   },
+  methods: {
+    async onFavorite (article) {
+      article.favoriteDisabled = true
+      if (article.favorited) {
+        await delFavorite(article.slug)
+        article.favorited = false
+        article.favoritesCount += -1
+      } else {
+        await addFavorite(article.slug)
+        article.favorited = true
+        article.favoritesCount += 1
+      }
+      article.favoriteDisabled = false
+    }
+  }
 };
 </script>
 

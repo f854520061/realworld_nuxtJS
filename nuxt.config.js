@@ -2,7 +2,7 @@
  * Nuxt.js 配置文件
  */
 
- module.exports = {
+module.exports = {
     router: {
         linkActiveClass: 'active', // 利用组件默认的激活类名来实现导航高亮显示
         // 自定义路由表规则
@@ -54,5 +54,11 @@
                 }
             ])
         }
-      }
- }
+    },
+
+    // 注册插件
+    plugins: [
+        '~/plugins/request.js',
+        '~/plugins/dayjs.js'
+    ]
+}
