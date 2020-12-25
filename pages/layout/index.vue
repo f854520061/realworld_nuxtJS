@@ -23,9 +23,17 @@
               </nuxt-link>
             </li>
             <li class="nav-item">
-              <nuxt-link class="nav-link" to="/profile/1">
+              <nuxt-link
+                class="nav-link"
+                :to="{
+                  name: 'profile',
+                  params: {
+                    username: user.username,
+                  },
+                }"
+              >
                 <img class="user-pic" :src="user.image" />
-                {{user.username}}
+                {{ user.username }}
               </nuxt-link>
             </li>
           </template>
@@ -66,13 +74,13 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
 export default {
   name: "LayoutIndex",
   computed: {
-    ...mapState(['user'])
-  }
+    ...mapState(["user"]),
+  },
 };
 </script>
 

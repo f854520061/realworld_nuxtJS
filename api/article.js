@@ -58,3 +58,12 @@ export const pushComments = (slug, data) => {
         data
     })
 }
+
+// 发布文章内容
+export const pushArticle = data => {
+    return request({
+        method: 'POST',
+        url: `/api/articles`,
+        data
+    })
+}

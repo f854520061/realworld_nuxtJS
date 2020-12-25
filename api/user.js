@@ -17,6 +17,15 @@ export const register = data => {
     })
 }
 
+// 更新用户
+export const updateUser = data => {
+    return request({
+        method: 'PUT',
+        url: '/api/user',
+        data
+    })
+}
+
 // 关注用户
 export const followUser = data => {
     return request({
